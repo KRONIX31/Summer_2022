@@ -2,9 +2,19 @@ const descriptions = document.querySelectorAll('.description')
 const buttons = document.querySelectorAll('.play')
 const regulatorVolume = document.querySelector('.volume')
 const allAudio = document.querySelectorAll('audio')
-let opIndex = 0
-regulatorVolume.oninput = volumeChange
+const currentTime = document.querySelectorAll('.current_time')
+const durationTime = document.querySelectorAll('.duration_time')
+const allTimelines = document.querySelectorAll('.timeline')
+let targetElem, targetAudio, targetLi
 
+
+regulatorVolume.oninput = volumeChange
+function volumeChange() {
+    for(i = 0; i < allAudio.length; i++){
+        allAudio[i].volume = regulatorVolume.value / 100
+    }
+    localStorage.volume = regulatorVolume.value
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     regulatorVolume.value = localStorage.volume
@@ -13,24 +23,99 @@ document.addEventListener('DOMContentLoaded', () => {
 
 for(i = 0; i < buttons.length; i++){
     buttons[i].addEventListener('click', buttonClick)
-    allAudio[i].addEventListener('abort', () => console.log('gfgf'))
-}
-for(i = 0; i < descriptions.length; i++){
     descriptions[i].addEventListener('click', descriptionClick)
+    allAudio[i].addEventListener('loadedmetadata', setMeta)
+    allAudio[i].addEventListener('timeupdate', timeUpdate)
+    allAudio[i].addEventListener('ended', audioEnded)
+    allTimelines[i].oninput = touchTimeUpdate
 }
 
-
-function volumeChange() {
+function setMeta(){
     for(i = 0; i < allAudio.length; i++){
-        allAudio[i].volume = regulatorVolume.value / 100
+        let mins = parseInt(`${(allAudio[i].duration / 60) % 60}`, 10)
+        let secs = `${parseInt(`${allAudio[i].duration % 60}`, 10)}`.padStart(2, '0')
+        durationTime[i].innerHTML = `${mins}:${secs}`
+        currentTime[i].innerHTML = allAudio[i].currentTime
     }
-    localStorage.volume = regulatorVolume.value
 }
+
+function timeUpdate(e){
+    const timeline = e.target.parentNode.querySelector('.timeline')
+    const currentTime = e.target.parentNode.querySelector('.current_time')
+    const audio = e.target
+
+    timeline.value = e.srcElement.currentTime / e.srcElement.duration * 100
+
+    mins = `${Math.floor(audio.currentTime / 60)}`
+    secs = Math.floor(audio.currentTime % 60)
+    if(secs < 10){
+        secs = `0` + String(secs)
+    }
+    currentTime.innerHTML = `${mins}:${secs}`
+}
+
+function touchTimeUpdate(e){
+    const audio = e.target.parentNode.parentNode.querySelector('audio')
+    const currentTime = e.target.parentNode.parentNode.querySelector('.current_time')
+    if(e.target.parentNode.parentNode.querySelector('audio').paused){
+        application()
+    } else{
+        audio.pause()
+        application()
+        audio.play()
+    }
+
+    function application(){
+        const newValue = audio.duration * (Number(e.target.value) / 100)
+        audio.currentTime = newValue
+        mins = `${Math.floor(newValue / 60)}`
+        secs = Math.floor(newValue % 60)
+        if(secs < 10){
+            secs = `0` + String(secs)
+        }
+        currentTime.innerHTML = `${mins}:${secs}`
+    }
+}
+
+function audioEnded(e){
+    const targetLi = e.target.parentNode
+    const timelineWrap = e.target.parentNode.querySelector('.timeline_wrap')
+    const icon = e.target.parentNode.querySelector('img')
+
+    targetLi.classList.remove('list_item_active')
+    timelineWrap.style.display = 'none'
+
+    icon.setAttribute('src', 'play.svg')
+    icon.style.transform = 'scale(1)'
+    e.target.currentTime = 0
+    const allList = document.querySelectorAll('.list_item')
+    for(i = 0; i < allList.length; i++){
+        if(e.target.parentNode == allList[i]){
+            if(allList.length > i+1){
+                buttonClick(allList[i+1].querySelector('img'))
+                console.log(1)
+            } else{
+                buttonClick(allList[0].querySelector('img'))
+                console.log('22')
+            } 
+        }
+    }
+
+}
+
+
+
+
+
+
 
 function buttonClick(e) {
-    console.log('button')
-    let targetElem = e.target
-    let audio
+    if(e.target){
+        targetElem = e.target
+    } else{
+        targetElem = e
+    }
+    
 
     if(targetElem.src){
         setButton()
@@ -38,54 +123,84 @@ function buttonClick(e) {
         targetElem = targetElem.querySelector('img')
         setButton()
     }
-
     function setButton() {
-        audio = targetElem.parentNode.parentNode.querySelector('.audio')
-        if(targetElem.getAttribute('src') == 'play.svg'){
-            targetElem.setAttribute('src', 'pause.svg')
-            targetElem.style.transform = 'scale(1.3)'
-            start()
+        targetAudio = targetElem.parentNode.parentNode.querySelector('.audio')
+    }
+
+    descriptionClick(targetElem, true)
+}
+
+function descriptionClick(li, ife) {
+    if(ife){
+        targetLi = li.parentNode.parentNode
+        play()
+    } else{
+        if(li.target.tagName == 'DIV'){
+            targetLi = li.target.parentNode
+            play()
         } else{
-            targetElem.setAttribute('src', 'play.svg')
-            targetElem.style.transform = 'scale(1)'
-            stop()
+            targetLi = li.target.parentNode.parentNode
+            play()
         }
     }
 
-
-    function start() {
-        audio.play()
-    }
-    function stop() {
-        audio.pause()
-    }
-    
-    if(opIndex == 0){
-        descriptionClick(targetElem.parentNode.parentNode, 1)
-    }
 }
 
-function descriptionClick(correntElem, ife) {
-    let liElem
-    if(opIndex == 0){
-        opIndex = 1
-    } else{
-        opIndex = 0
+
+
+function play() {
+    if(durationTime[0].innerHTML == '0:00'){
+        setMeta()
     }
-    function openTimeline(){
-        liElem.classList.toggle('list_item_active')
-        console.log('description', liElem)
-    }
-    if(ife){
-        liElem = correntElem
-        openTimeline()
+    targetAudio = targetLi.querySelector('audio')
+    let icon = targetLi.querySelector('img')
+    let timelineWrap = targetLi.querySelector('.timeline_wrap')
+
+    if(targetAudio.currentTime == 0){
+        whenNull()
     } else{
-        if(correntElem.target.tagName == 'DIV'){
-            liElem = correntElem.target.parentNode
-            openTimeline()
+        whenNeNull()
+    }
+
+    function whenNull() {
+        if(targetAudio.paused){
+            targetAudio.play()
+            targetLi.classList.add('list_item_active')
+            icon.setAttribute('src', 'pause.svg')
+            icon.style.transform = 'scale(1.3)'
+            timelineWrap.style.display = 'block'
+
+            allAudio.forEach(function(currentValue) {
+                if(currentValue == targetAudio){
+                    return
+                } else{
+                    currentValue.pause()
+                    currentValue.currentTime = 0
+
+                    currentValue.parentNode.classList.remove('list_item_active')
+                    currentValue.parentNode.querySelector('.timeline_wrap').style.display = 'none'
+                    icon = currentValue.parentNode.querySelector('img')
+                    icon.setAttribute('src', 'play.svg')
+                    icon.style.transform = 'scale(1)'
+
+                }
+            })
         } else{
-            liElem = correntElem.target.parentNode.parentNode
-            openTimeline()
+            targetAudio.pause()
+            icon.setAttribute('src', 'play.svg')
+            icon.style.transform = 'scale(1)'
+        }
+    }
+    function whenNeNull(){
+        if(targetAudio.paused){
+            targetAudio.play()
+            icon.setAttribute('src', 'pause.svg')
+            icon.style.transform = 'scale(1.3)'
+            
+        } else{
+            targetAudio.pause()
+            icon.setAttribute('src', 'play.svg')
+            icon.style.transform = 'scale(1)'
         }
     }
 }
