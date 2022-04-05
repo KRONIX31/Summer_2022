@@ -35,7 +35,6 @@ function setMeta(){
         let mins = parseInt(`${(allAudio[i].duration / 60) % 60}`, 10)
         let secs = `${parseInt(`${allAudio[i].duration % 60}`, 10)}`.padStart(2, '0')
         durationTime[i].innerHTML = `${mins}:${secs}`
-        currentTime[i].innerHTML = allAudio[i].currentTime
     }
 }
 
@@ -43,9 +42,8 @@ function timeUpdate(e){
     const timeline = e.target.parentNode.querySelector('.timeline')
     const currentTime = e.target.parentNode.querySelector('.current_time')
     const audio = e.target
-
     timeline.value = e.srcElement.currentTime / e.srcElement.duration * 100
-
+    
     mins = `${Math.floor(audio.currentTime / 60)}`
     secs = Math.floor(audio.currentTime % 60)
     if(secs < 10){
@@ -57,12 +55,31 @@ function timeUpdate(e){
 function touchTimeUpdate(e){
     const audio = e.target.parentNode.parentNode.querySelector('audio')
     const currentTime = e.target.parentNode.parentNode.querySelector('.current_time')
+    let onplaying
+    let onpause
+    function playAud() {      
+        if (audio.paused && !onplaying) {
+            audio.play();
+        }
+    } 
+    function pauseAud() {     
+        if (!audio.paused && !onpause) {
+            audio.pause();
+        }
+    }
     if(e.target.parentNode.parentNode.querySelector('audio').paused){
         application()
     } else{
-        audio.pause()
+        onplaying = false
+        onpause = true
+
+        pauseAud()
         application()
-        audio.play()
+
+        onplaying = true
+        onpause = false
+
+        playAud()
     }
 
     function application(){
@@ -95,6 +112,7 @@ function audioEnded(e){
                 buttonClick(allList[i+1].querySelector('img'))
                 console.log(1)
             } else{
+                window.scrollBy(0, -9000)
                 buttonClick(allList[0].querySelector('img'))
                 console.log('22')
             } 
