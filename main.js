@@ -5,6 +5,7 @@ const allAudio = document.querySelectorAll('audio')
 const currentTime = document.querySelectorAll('.current_time')
 const durationTime = document.querySelectorAll('.duration_time')
 const allTimelines = document.querySelectorAll('.timeline')
+const searchElem = document.querySelector('.search')
 let targetElem, targetAudio, targetLi
 
 
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     volumeChange()
 })
 
+searchElem.oninput = search
 for(i = 0; i < buttons.length; i++){
     buttons[i].addEventListener('click', buttonClick)
     descriptions[i].addEventListener('click', descriptionClick)
@@ -29,6 +31,7 @@ for(i = 0; i < buttons.length; i++){
     allAudio[i].addEventListener('ended', audioEnded)
     allTimelines[i].oninput = touchTimeUpdate
 }
+
 
 function setMeta(){
     for(i = 0; i < allAudio.length; i++){
@@ -167,9 +170,7 @@ function descriptionClick(li, ife) {
 
 
 function play() {
-    if(durationTime[0].innerHTML == '0:00'){
-        setMeta()
-    }
+    setMeta()
     targetAudio = targetLi.querySelector('audio')
     let icon = targetLi.querySelector('img')
     let timelineWrap = targetLi.querySelector('.timeline_wrap')
@@ -221,4 +222,29 @@ function play() {
             icon.style.transform = 'scale(1)'
         }
     }
+}
+
+function search(){
+    const value = this.value.trim()
+    if(value != ''){
+        descriptions.forEach(function(element){
+            if(element.innerText.toLowerCase().search(value.toLowerCase()) == -1){
+                element.parentNode.style.display = 'none'
+            } else{
+                element.parentNode.style.display = 'flex'
+            }
+        })
+    } else{
+        descriptions.forEach(function(element){
+            element.parentNode.style.display = 'flex'
+        })
+    }
+}
+
+lazyLoading()
+async function lazyLoading(){
+    let url = '/data.json'
+    let response = await fetch(url)
+    let commits = await response.json()
+    console.log(commits)
 }

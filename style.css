@@ -17,6 +17,7 @@ table, caption, tbody, tfoot, thead, tr, th, td {
 }
 body {
 	line-height: 1;
+    background-color: #2a2c2f;
 }
 ol, ul {
 	list-style: none;
@@ -30,12 +31,9 @@ q:before, q:after {
 	content: none;
 }
 
-/* remember to define focus styles! */
 :focus {
 	outline: 0;
 }
-
-/* remember to highlight inserts somehow! */
 ins {
 	text-decoration: none;
 }
@@ -54,10 +52,8 @@ table {
 
 
 
-
 .wrapper{
-    padding: 76px 16px 16px 16px;
-    background-color: #2a2c2f;
+    padding: 76px 16px 42px 16px;
     font-family: 'Ubuntu', sans-serif;
 }
 .invisible{
@@ -182,4 +178,40 @@ table {
     height: 20px;
     width: 15px;
     box-shadow: -100vw 0 0 100vw rgb(155, 154, 154);
+}
+.search_wrapper{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #1f1f1f;
+    z-index: 30;
+}
+.search{
+    position: relative;
+    border: 0;
+    height: 35px;
+    width: 100%;
+    outline: none;
+    background-color: transparent;
+    color: #fff;
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: 1.5px;
+}
+.search_wrapper div{
+    position: relative;
+    display: flex;
+    padding: 2px 5px;
+    align-items: center;
+    justify-content: center;
+}
+.search::placeholder{
+    color: rgba(255, 255, 255, 0.339);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 5px;
+    font-weight: 500;
+    font-size: 16px;
 }
