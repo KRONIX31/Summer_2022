@@ -6,6 +6,7 @@ const currentTime = document.querySelectorAll('.current_time')
 const durationTime = document.querySelectorAll('.duration_time')
 const allTimelines = document.querySelectorAll('.timeline')
 const searchElem = document.querySelector('.search')
+const list = document.querySelector('.list')
 let targetElem, targetAudio, targetLi
 
 
@@ -239,12 +240,4 @@ function search(){
             element.parentNode.style.display = 'flex'
         })
     }
-}
-
-lazyLoading()
-async function lazyLoading(){
-    let url = '/data.json'
-    let response = await fetch(url)
-    let commits = await response.json()
-    console.log(commits)
 }
